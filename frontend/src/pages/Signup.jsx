@@ -157,7 +157,7 @@ function Signup() {
               <span className="text-2xl font-semibold">TeamTask</span>
             </Link>
 
-            <div className="inline-flex items-center gap-2 border border-white/10 bg-white/5 rounded-full px-4 py-2 text-sm text-white/70 mb-8">
+            <div className="inline-flex items-center gap-2 border border-white/10 bg-white/5 rounded-full px-4 py-2 text-sm text-white/70 mb-8 ml-6">
               <span className="w-2 h-2 rounded-full bg-green-400" />
               New Workspace
             </div>

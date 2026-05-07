@@ -6,7 +6,7 @@ import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
 import ProjectDetails from "./pages/ProjectDetails";
 import MyTasks from "./pages/MyTasks";
-import ProtectedRoute from "./components/ProtectedRoute";
+// import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -20,36 +20,36 @@ function App() {
         <Route
           path="/dashboard"
           element={
-            <ProtectedRoute>
+            // <ProtectedRoute>
               <Dashboard />
-            </ProtectedRoute>
+            // </ProtectedRoute>
           }
         />
 
         <Route
           path="/projects"
           element={
-            <ProtectedRoute>
+            // <ProtectedRoute>
               <Projects />
-            </ProtectedRoute>
+            // </ProtectedRoute>
           }
         />
 
         <Route
           path="/projects/:id"
           element={
-            <ProtectedRoute>
+            // <ProtectedRoute>
               <ProjectDetails />
-            </ProtectedRoute>
+            // </ProtectedRoute>
           }
         />
 
         <Route
           path="/my-tasks"
           element={
-            <ProtectedRoute>
+            // <ProtectedRoute>
               <MyTasks />
-            </ProtectedRoute>
+            // </ProtectedRoute>
           }
         />
       </Routes>

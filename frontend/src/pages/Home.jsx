@@ -26,13 +26,17 @@ function Home() {
           </div>
 
           <div className="hidden md:flex items-center gap-8 text-sm text-white/70">
-            <a href="#features" className="hover:text-white transition">
-              Features
-            </a>
+            <Link to="/projects" className="hover:text-white transition">
+              Projects
+            </Link>
 
-            <a href="#dashboard" className="hover:text-white transition">
+            <Link to="/dashboard" className="hover:text-white transition">
               Dashboard
-            </a>
+            </Link>
+
+            <Link to="/my-tasks" className="hover:text-white transition">
+              My Tasks
+            </Link>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
