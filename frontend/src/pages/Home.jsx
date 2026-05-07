@@ -1,6 +1,11 @@
 import { Link } from "react-router-dom";
 
 function Home() {
+  const token = localStorage.getItem("token");
+
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  const username = user?.email?.split("@")[0];
   return (
     <div className="relative min-h-screen bg-black text-white overflow-hidden">
       {/* Grid Background */}
@@ -39,20 +44,41 @@ function Home() {
             </Link>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Link
-              to="/login"
-              className="px-3 sm:px-5 py-2 rounded-xl border border-white/10 hover:bg-white/5 transition text-xs sm:text-sm"
-            >
-              Login
-            </Link>
+          <div className="flex items-center gap-3">
+            {token ? (
+              <>
+                <div className="px-4 py-2 rounded-xl border border-white/10 text-sm text-white/80">
+                  {username}
+                </div>
 
-            <Link
-              to="/signup"
-              className="px-3 sm:px-5 py-2 rounded-xl bg-white text-black font-medium hover:bg-white/90 transition text-xs sm:text-sm"
-            >
-              Get Started
-            </Link>
+                <button
+                  onClick={() => {
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("user");
+                    window.location.reload();
+                  }}
+                  className="px-4 py-2 rounded-xl bg-red-500/20 border border-red-500/20 text-red-400 hover:bg-red-500/30 transition text-sm"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="px-3 sm:px-5 py-2 rounded-xl border border-white/10 hover:bg-white/5 transition text-xs sm:text-sm"
+                >
+                  Login
+                </Link>
+
+                <Link
+                  to="/signup"
+                  className="px-3 sm:px-5 py-2 rounded-xl bg-white text-black font-medium hover:bg-white/90 transition text-xs sm:text-sm"
+                >
+                  Get Started
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -83,12 +109,21 @@ function Home() {
               </p>
 
               <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row gap-4">
-                <Link
-                  to="/signup"
-                  className="text-center px-8 py-4 bg-white text-black rounded-2xl font-semibold hover:bg-white/90 transition"
-                >
-                  Get Started
-                </Link>
+                {token ? (
+                  <Link
+                    to="/dashboard"
+                    className="text-center px-8 py-4 bg-white text-black rounded-2xl font-semibold hover:bg-white/90 transition"
+                  >
+                    Dashboard
+                  </Link>
+                ) : (
+                  <Link
+                    to="/signup"
+                    className="text-center px-8 py-4 bg-white text-black rounded-2xl font-semibold hover:bg-white/90 transition"
+                  >
+                    Get Started
+                  </Link>
+                )}
 
                 <a
                   href="#features"

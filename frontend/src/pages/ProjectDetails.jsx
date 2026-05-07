@@ -1,16 +1,31 @@
 import { Link, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import API from "../api/axios.js";
 
 function ProjectDetails() {
   const { id } = useParams();
+  const [project, setProject] = useState(null);
 
-  const tasks = [
-    { title: "Create login API", assignee: "Suman", status: "Done", priority: "High" },
-    { title: "Design dashboard page", assignee: "Rahul", status: "In Progress", priority: "Medium" },
-    { title: "Create task table", assignee: "Aman", status: "To Do", priority: "High" },
-    { title: "Deploy on Railway", assignee: "Suman", status: "To Do", priority: "Low" },
-  ];
+  useEffect(() => {
+    const fetchProject = async () => {
+      try {
+        const res = await API.get(`/projects/${id}`);
+        setProject(res.data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
 
-  const members = ["Suman", "Rahul", "Aman", "Priya"];
+    fetchProject();
+  }, [id]);
+
+  if (!project) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        Loading project...
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
@@ -20,16 +35,24 @@ function ProjectDetails() {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-8">
         <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <Link to="/projects" className="text-sm text-white/50 hover:text-white">
+            <Link
+              to="/projects"
+              className="text-sm text-white/50 hover:text-white"
+            >
               ← Back to Projects
             </Link>
 
             <h1 className="text-3xl sm:text-5xl font-semibold tracking-tight mt-3">
-              TeamTask Project
+              {project.name}
             </h1>
 
             <p className="text-white/50 mt-3">
-              Project ID: {id} · Manage tasks, members and project progress.
+              {project.description || "No description added"}
+            </p>
+
+            <p className="text-white/40 text-sm mt-2">
+              Project ID: {project.id} · Created on{" "}
+              {new Date(project.created_at).toLocaleDateString()}
             </p>
           </div>
 
@@ -39,110 +62,27 @@ function ProjectDetails() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
-          {[
-            { title: "Total Tasks", value: "24" },
-            { title: "Completed", value: "12" },
-            { title: "Members", value: "04" },
-          ].map((stat) => (
-            <div
-              key={stat.title}
-              className="border border-white/10 bg-white/3 backdrop-blur-xl rounded-3xl p-6"
-            >
-              <p className="text-white/50 text-sm">{stat.title}</p>
-              <h2 className="text-4xl font-semibold mt-3">{stat.value}</h2>
-            </div>
-          ))}
+          <div className="border border-white/10 bg-white/3 backdrop-blur-xl rounded-3xl p-6">
+            <p className="text-white/50 text-sm">Total Tasks</p>
+            <h2 className="text-4xl font-semibold mt-3">0</h2>
+          </div>
+
+          <div className="border border-white/10 bg-white/3 backdrop-blur-xl rounded-3xl p-6">
+            <p className="text-white/50 text-sm">Completed</p>
+            <h2 className="text-4xl font-semibold mt-3">0</h2>
+          </div>
+
+          <div className="border border-white/10 bg-white/3 backdrop-blur-xl rounded-3xl p-6">
+            <p className="text-white/50 text-sm">Status</p>
+            <h2 className="text-4xl font-semibold mt-3">Active</h2>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_0.8fr] gap-6">
-          <div className="border border-white/10 bg-white/3 backdrop-blur-xl rounded-3xl overflow-hidden">
-            <div className="p-5 border-b border-white/10 flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Project Tasks</h2>
-              <span className="text-sm text-white/50">Task board</span>
-            </div>
-
-            <div className="divide-y divide-white/10">
-              {tasks.map((task) => (
-                <div
-                  key={task.title}
-                  className="p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4 hover:bg-white/3"
-                >
-                  <div>
-                    <h3 className="font-medium">{task.title}</h3>
-                    <p className="text-sm text-white/50 mt-1">
-                      Assigned to {task.assignee}
-                    </p>
-                  </div>
-
-                  <div className="flex flex-wrap gap-3">
-                    <span className="px-3 py-1 rounded-full text-xs border border-white/10 bg-white/3">
-                      {task.status}
-                    </span>
-
-                    <span className="px-3 py-1 rounded-full text-xs border border-white/10 bg-white/3">
-                      {task.priority}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-6">
-            <div className="border border-white/10 bg-white/3 backdrop-blur-xl rounded-3xl p-6">
-              <h2 className="text-xl font-semibold mb-5">Team Members</h2>
-
-              <div className="space-y-4">
-                {members.map((member, index) => (
-                  <div
-                    key={member}
-                    className="flex items-center justify-between border border-white/10 rounded-2xl p-4"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-white text-black flex items-center justify-center font-bold">
-                        {member[0]}
-                      </div>
-
-                      <div>
-                        <h3 className="font-medium">{member}</h3>
-                        <p className="text-xs text-white/50">
-                          {index === 0 ? "Admin" : "Member"}
-                        </p>
-                      </div>
-                    </div>
-
-                    <span className="text-xs text-green-400">Active</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="border border-white/10 bg-white/3 backdrop-blur-xl rounded-3xl p-6">
-              <h2 className="text-xl font-semibold mb-5">Progress</h2>
-
-              <div className="space-y-5">
-                {[
-                  ["To Do", "35%"],
-                  ["In Progress", "55%"],
-                  ["Done", "70%"],
-                ].map(([label, width]) => (
-                  <div key={label}>
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-white/60">{label}</span>
-                      <span>{width}</span>
-                    </div>
-
-                    <div className="h-3 bg-white/10 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-white rounded-full"
-                        style={{ width }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+        <div className="border border-white/10 bg-white/3 backdrop-blur-xl rounded-3xl p-10 text-center">
+          <h2 className="text-2xl font-semibold">No tasks yet</h2>
+          <p className="text-white/50 mt-3">
+            Task API connect karne ke baad yaha real tasks show honge.
+          </p>
         </div>
       </div>
     </div>
