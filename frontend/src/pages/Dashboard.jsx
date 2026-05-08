@@ -1,44 +1,61 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-// import Navbar from "../components/Navbar";
+import axios from "axios";
 
 function Dashboard() {
-  const user = JSON.parse(localStorage.getItem("user")) || {
-    name: "Suman",
-  };
+  const user = JSON.parse(localStorage.getItem("user")) || { name: "Suman" };
+  const token = localStorage.getItem("token");
 
-  const stats = [
-    { title: "Total Tasks", value: "24" },
-    { title: "In Progress", value: "08" },
-    { title: "Completed", value: "16" },
-    { title: "Overdue", value: "03" },
-  ];
+  const [stats, setStats] = useState([
+    { title: "Total Tasks", value: 0 },
+    { title: "In Progress", value: 0 },
+    { title: "Completed", value: 0 },
+    { title: "Overdue", value: 0 },
+  ]);
 
-  const tasks = [
-    {
-      title: "Design dashboard UI",
-      project: "TeamTask",
-      status: "In Progress",
-      priority: "High",
-    },
-    {
-      title: "Setup MySQL database",
-      project: "Backend API",
-      status: "To Do",
-      priority: "Medium",
-    },
-    {
-      title: "Implement JWT authentication",
-      project: "Auth System",
-      status: "Done",
-      priority: "High",
-    },
-    {
-      title: "Deploy app on Railway",
-      project: "Deployment",
-      status: "To Do",
-      priority: "Low",
-    },
-  ];
+  const [tasks, setTasks] = useState([]);
+
+  const API_URL = "http://localhost:5000/api";
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const res = await axios.get(`${API_URL}/tasks/my-tasks`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const allTasks = Array.isArray(res.data) ? res.data : [];
+
+        const total = allTasks.length;
+
+        const inProgress = allTasks.filter(
+          (task) => task.status === "In Progress",
+        ).length;
+
+        const completed = allTasks.filter(
+          (task) => task.status === "Done" || task.status === "Completed",
+        ).length;
+
+        const overdue = allTasks.filter(
+          (task) => task.due_date && new Date(task.due_date) < new Date(),
+        ).length;
+
+        setStats([
+          { title: "Total Tasks", value: total },
+          { title: "In Progress", value: inProgress },
+          { title: "Completed", value: completed },
+          { title: "Overdue", value: overdue },
+        ]);
+
+        setTasks(allTasks.slice(0, 4));
+      } catch (err) {
+        console.log("Dashboard fetch error:", err);
+      }
+    };
+
+    fetchDashboardData();
+  }, [API_URL, token]);
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -55,7 +72,7 @@ function Dashboard() {
           </Link>
 
           <div className="space-y-3">
-            {["Dashboard", "Projects", "My Tasks", "Team", "Settings"].map(
+            {["Dashboard", "Projects", "My Tasks",].map(
               (item) => (
                 <Link
                   key={item}
@@ -63,14 +80,14 @@ function Dashboard() {
                     item === "Projects"
                       ? "/projects"
                       : item === "My Tasks"
-                      ? "/my-tasks"
-                      : "/dashboard"
+                        ? "/my-tasks"
+                        : "/dashboard"
                   }
                   className="block px-4 py-3 rounded-xl text-white/70 hover:text-white hover:bg-white/5 transition"
                 >
                   {item}
                 </Link>
-              )
+              ),
             )}
           </div>
         </aside>
@@ -108,34 +125,41 @@ function Dashboard() {
             <div className="border border-white/10 bg-white/3 backdrop-blur-xl rounded-3xl overflow-hidden">
               <div className="p-5 border-b border-white/10 flex items-center justify-between">
                 <h2 className="text-xl font-semibold">Recent Tasks</h2>
-                <Link to="/my-tasks" className="text-sm text-white/50 hover:text-white">
+                <Link
+                  to="/my-tasks"
+                  className="text-sm text-white/50 hover:text-white"
+                >
                   View all
                 </Link>
               </div>
 
               <div className="divide-y divide-white/10">
-                {tasks.map((task) => (
-                  <div
-                    key={task.title}
-                    className="p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4 hover:bg-white/3"
-                  >
-                    <div>
-                      <h3 className="font-medium">{task.title}</h3>
-                      <p className="text-sm text-white/50 mt-1">
-                        {task.project}
-                      </p>
-                    </div>
+                {tasks.length === 0 ? (
+                  <p className="p-5 text-white/50">No tasks found</p>
+                ) : (
+                  tasks.map((task) => (
+                    <div
+                      key={task.id}
+                      className="p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4 hover:bg-white/3"
+                    >
+                      <div>
+                        <h3 className="font-medium">{task.title}</h3>
+                        <p className="text-sm text-white/50 mt-1">
+                          {task.project_name || task.project || "No Project"}
+                        </p>
+                      </div>
 
-                    <div className="flex flex-wrap gap-3">
-                      <span className="px-3 py-1 rounded-full text-xs border border-white/10 bg-white/3">
-                        {task.status}
-                      </span>
-                      <span className="px-3 py-1 rounded-full text-xs border border-white/10 bg-white/3">
-                        {task.priority}
-                      </span>
+                      <div className="flex flex-wrap gap-3">
+                        <span className="px-3 py-1 rounded-full text-xs border border-white/10 bg-white/3">
+                          {task.status}
+                        </span>
+                        <span className="px-3 py-1 rounded-full text-xs border border-white/10 bg-white/3">
+                          {task.priority}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
 
@@ -143,20 +167,22 @@ function Dashboard() {
               <h2 className="text-xl font-semibold mb-6">Task Overview</h2>
 
               <div className="space-y-5">
-                {[
-                  ["To Do", "35%"],
-                  ["In Progress", "45%"],
-                  ["Done", "80%"],
-                ].map(([label, width]) => (
-                  <div key={label}>
+                {stats.slice(1, 3).map((stat) => (
+                  <div key={stat.title}>
                     <div className="flex justify-between text-sm mb-2">
-                      <span className="text-white/60">{label}</span>
-                      <span>{width}</span>
+                      <span className="text-white/60">{stat.title}</span>
+                      <span>{stat.value}</span>
                     </div>
                     <div className="h-3 bg-white/10 rounded-full overflow-hidden">
                       <div
                         className="h-full bg-white rounded-full"
-                        style={{ width }}
+                        style={{
+                          width: `${
+                            stats[0].value
+                              ? (stat.value / stats[0].value) * 100
+                              : 0
+                          }%`,
+                        }}
                       />
                     </div>
                   </div>

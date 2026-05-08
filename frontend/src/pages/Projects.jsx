@@ -4,6 +4,13 @@ import API from "../api/axios.js";
 
 function Projects() {
   const [projects, setProjects] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [editProjectId, setEditProjectId] = useState(null);
+
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+  });
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/immutability
@@ -19,6 +26,72 @@ function Projects() {
     }
   };
 
+  const openCreateModal = () => {
+    setEditProjectId(null);
+    setFormData({
+      name: "",
+      description: "",
+    });
+    setShowModal(true);
+  };
+
+  const openEditModal = (project) => {
+    setEditProjectId(project.id);
+    setFormData({
+      name: project.name || "",
+      description: project.description || "",
+    });
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setEditProjectId(null);
+    setFormData({
+      name: "",
+      description: "",
+    });
+  };
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmitProject = async (e) => {
+    e.preventDefault();
+
+    try {
+      if (editProjectId) {
+        await API.put(`/projects/${editProjectId}`, formData);
+      } else {
+        await API.post("/projects", formData);
+      }
+
+      closeModal();
+      fetchProjects();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleDeleteProject = async (projectId) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this project?"
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      await API.delete(`/projects/${projectId}`);
+      fetchProjects();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-size-[80px_80px] opacity-30" />
@@ -28,7 +101,10 @@ function Projects() {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 mb-10">
           <div>
-            <Link to="/dashboard" className="text-sm text-white/50 hover:text-white">
+            <Link
+              to="/dashboard"
+              className="text-sm text-white/50 hover:text-white"
+            >
               ← Back to Dashboard
             </Link>
 
@@ -41,7 +117,10 @@ function Projects() {
             </p>
           </div>
 
-          <button className="px-6 py-3 rounded-2xl bg-white text-black font-semibold hover:bg-white/90 transition w-full sm:w-auto">
+          <button
+            onClick={openCreateModal}
+            className="px-6 py-3 rounded-2xl bg-white text-black font-semibold hover:bg-white/90 transition w-full sm:w-auto"
+          >
             Create Project
           </button>
         </div>
@@ -92,20 +171,32 @@ function Projects() {
                 <div className="mt-8 border border-white/10 rounded-2xl p-4">
                   <p className="text-white/50 text-sm">Created At</p>
                   <h3 className="text-sm font-medium mt-2">
-                    {new Date(project.created_at).toLocaleDateString()}
+                    {project.created_at
+                      ? new Date(project.created_at).toLocaleDateString()
+                      : "N/A"}
                   </h3>
                 </div>
 
-                <div className="mt-8 flex flex-col sm:flex-row gap-4">
+                <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <Link
                     to={`/projects/${project.id}`}
-                    className="flex-1 text-center px-5 py-3 rounded-2xl bg-white text-black font-semibold hover:bg-white/90 transition"
+                    className="text-center px-5 py-3 rounded-2xl bg-white text-black font-semibold hover:bg-white/90 transition"
                   >
-                    Open Project
+                    Open
                   </Link>
 
-                  <button className="flex-1 px-5 py-3 rounded-2xl border border-white/10 hover:bg-white/5 transition">
+                  <button
+                    onClick={() => openEditModal(project)}
+                    className="px-5 py-3 rounded-2xl border border-white/10 hover:bg-white/5 transition"
+                  >
                     Edit
+                  </button>
+
+                  <button
+                    onClick={() => handleDeleteProject(project.id)}
+                    className="px-5 py-3 rounded-2xl border border-red-500/30 text-red-400 hover:bg-red-500/10 transition"
+                  >
+                    Delete
                   </button>
                 </div>
               </div>
@@ -113,6 +204,65 @@ function Projects() {
           </div>
         )}
       </div>
+
+      {showModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4">
+          <div className="w-full max-w-lg border border-white/10 bg-zinc-900 rounded-3xl p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-semibold">
+                {editProjectId ? "Edit Project" : "Create Project"}
+              </h2>
+
+              <button
+                onClick={closeModal}
+                className="text-white/50 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitProject} className="space-y-5">
+              <div>
+                <label className="block text-sm mb-2 text-white/60">
+                  Project Name
+                </label>
+
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="Enter project name"
+                  className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 outline-none"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm mb-2 text-white/60">
+                  Description
+                </label>
+
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  rows="4"
+                  placeholder="Enter project description"
+                  className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 outline-none resize-none"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 rounded-2xl bg-white text-black font-semibold hover:bg-white/90 transition"
+              >
+                {editProjectId ? "Update Project" : "Create Project"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
