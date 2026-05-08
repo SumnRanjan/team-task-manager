@@ -9,7 +9,7 @@ import projectRoutes from "./routes/projectRoutes.js";
 import taskRoutes from "./routes/taskRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 
-dotenv.config({quiet : true});
+dotenv.config({ quiet: true });
 
 connectDB();
 

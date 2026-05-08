@@ -20,7 +20,7 @@ function Projects() {
   const fetchProjects = async () => {
     try {
       const res = await API.get("/projects");
-      setProjects(res.data.projects || res.data);
+      setProjects(res.data.projects || []);
     } catch (error) {
       console.log(error);
     }
@@ -28,25 +28,31 @@ function Projects() {
 
   const openCreateModal = () => {
     setEditProjectId(null);
+
     setFormData({
       name: "",
       description: "",
     });
+
     setShowModal(true);
   };
 
   const openEditModal = (project) => {
-    setEditProjectId(project.id);
+    setEditProjectId(project._id);
+
     setFormData({
       name: project.name || "",
       description: project.description || "",
     });
+
     setShowModal(true);
   };
 
   const closeModal = () => {
     setShowModal(false);
+
     setEditProjectId(null);
+
     setFormData({
       name: "",
       description: "",
@@ -71,6 +77,7 @@ function Projects() {
       }
 
       closeModal();
+
       fetchProjects();
     } catch (error) {
       console.log(error);
@@ -86,6 +93,7 @@ function Projects() {
 
     try {
       await API.delete(`/projects/${projectId}`);
+
       fetchProjects();
     } catch (error) {
       console.log(error);
@@ -128,35 +136,49 @@ function Projects() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-10">
           <div className="border border-white/10 bg-white/3 backdrop-blur-xl rounded-3xl p-6">
             <p className="text-white/50 text-sm">Total Projects</p>
-            <h2 className="text-4xl font-semibold mt-3">{projects.length}</h2>
+
+            <h2 className="text-4xl font-semibold mt-3">
+              {projects.length}
+            </h2>
           </div>
 
           <div className="border border-white/10 bg-white/3 backdrop-blur-xl rounded-3xl p-6">
             <p className="text-white/50 text-sm">Active Projects</p>
-            <h2 className="text-4xl font-semibold mt-3">{projects.length}</h2>
+
+            <h2 className="text-4xl font-semibold mt-3">
+              {projects.length}
+            </h2>
           </div>
 
           <div className="border border-white/10 bg-white/3 backdrop-blur-xl rounded-3xl p-6">
             <p className="text-white/50 text-sm">Completed</p>
+
             <h2 className="text-4xl font-semibold mt-3">0</h2>
           </div>
         </div>
 
         {projects.length === 0 ? (
           <div className="border border-white/10 bg-white/3 rounded-3xl p-10 text-center">
-            <h2 className="text-2xl font-semibold">No projects found</h2>
-            <p className="text-white/50 mt-3">Create your first project.</p>
+            <h2 className="text-2xl font-semibold">
+              No projects found
+            </h2>
+
+            <p className="text-white/50 mt-3">
+              Create your first project.
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {projects.map((project) => (
               <div
-                key={project.id}
+                key={project._id}
                 className="border border-white/10 bg-white/3 backdrop-blur-xl rounded-3xl p-6 hover:bg-white/5 transition"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h2 className="text-2xl font-semibold">{project.name}</h2>
+                    <h2 className="text-2xl font-semibold">
+                      {project.name}
+                    </h2>
 
                     <p className="text-white/50 mt-3 leading-relaxed">
                       {project.description || "No description added"}
@@ -169,17 +191,32 @@ function Projects() {
                 </div>
 
                 <div className="mt-8 border border-white/10 rounded-2xl p-4">
-                  <p className="text-white/50 text-sm">Created At</p>
+                  <p className="text-white/50 text-sm">
+                    Created At
+                  </p>
+
                   <h3 className="text-sm font-medium mt-2">
-                    {project.created_at
-                      ? new Date(project.created_at).toLocaleDateString()
+                    {project.createdAt
+                      ? new Date(
+                          project.createdAt
+                        ).toLocaleDateString()
                       : "N/A"}
+                  </h3>
+                </div>
+
+                <div className="mt-8 border border-white/10 rounded-2xl p-4">
+                  <p className="text-white/50 text-sm">
+                    Members
+                  </p>
+
+                  <h3 className="text-sm font-medium mt-2">
+                    {project.members?.length || 0} Members
                   </h3>
                 </div>
 
                 <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <Link
-                    to={`/projects/${project.id}`}
+                    to={`/projects/${project._id}`}
                     className="text-center px-5 py-3 rounded-2xl bg-white text-black font-semibold hover:bg-white/90 transition"
                   >
                     Open
@@ -193,7 +230,9 @@ function Projects() {
                   </button>
 
                   <button
-                    onClick={() => handleDeleteProject(project.id)}
+                    onClick={() =>
+                      handleDeleteProject(project._id)
+                    }
                     className="px-5 py-3 rounded-2xl border border-red-500/30 text-red-400 hover:bg-red-500/10 transition"
                   >
                     Delete
@@ -210,7 +249,9 @@ function Projects() {
           <div className="w-full max-w-lg border border-white/10 bg-zinc-900 rounded-3xl p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-semibold">
-                {editProjectId ? "Edit Project" : "Create Project"}
+                {editProjectId
+                  ? "Edit Project"
+                  : "Create Project"}
               </h2>
 
               <button
@@ -221,7 +262,10 @@ function Projects() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmitProject} className="space-y-5">
+            <form
+              onSubmit={handleSubmitProject}
+              className="space-y-5"
+            >
               <div>
                 <label className="block text-sm mb-2 text-white/60">
                   Project Name
@@ -257,7 +301,9 @@ function Projects() {
                 type="submit"
                 className="w-full py-3 rounded-2xl bg-white text-black font-semibold hover:bg-white/90 transition"
               >
-                {editProjectId ? "Update Project" : "Create Project"}
+                {editProjectId
+                  ? "Update Project"
+                  : "Create Project"}
               </button>
             </form>
           </div>

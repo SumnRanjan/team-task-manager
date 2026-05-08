@@ -13,7 +13,7 @@ export const createTask = async (req, res) => {
       assignedTo,
     } = req.body;
 
-    if (!title || !projectId || !assignedTo || !dueDate) {
+    if (!title || !projectId || !dueDate) {
       return res.status(400).json({
         message: "Required fields missing",
       });
@@ -35,8 +35,10 @@ export const createTask = async (req, res) => {
       });
     }
 
+    const taskAssignedTo = assignedTo || req.user.id;
+
     const isAssignedUserMember = project.members.some(
-      (member) => member.user.toString() === assignedTo
+      (member) => member.user.toString() === taskAssignedTo
     );
 
     if (!isAssignedUserMember) {
@@ -52,7 +54,7 @@ export const createTask = async (req, res) => {
       priority: priority || "Medium",
       dueDate,
       project: projectId,
-      assignedTo,
+      assignedTo: taskAssignedTo,
       createdBy: req.user.id,
     });
 

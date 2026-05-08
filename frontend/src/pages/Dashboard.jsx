@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
+import API from "../api/axios";
 
 function Dashboard() {
-  const user = JSON.parse(localStorage.getItem("user")) || { name: "Suman" };
-  const token = localStorage.getItem("token");
+  const user = JSON.parse(localStorage.getItem("user")) || { name: "User" };
 
   const [stats, setStats] = useState([
     { title: "Total Tasks", value: 0 },
@@ -15,37 +14,20 @@ function Dashboard() {
 
   const [tasks, setTasks] = useState([]);
 
-  const API_URL = "http://localhost:5000/api";
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const res = await axios.get(`${API_URL}/tasks/my-tasks`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const statsRes = await API.get("/dashboard/stats");
+        const tasksRes = await API.get("/tasks");
 
-        const allTasks = Array.isArray(res.data) ? res.data : [];
-
-        const total = allTasks.length;
-
-        const inProgress = allTasks.filter(
-          (task) => task.status === "In Progress",
-        ).length;
-
-        const completed = allTasks.filter(
-          (task) => task.status === "Done" || task.status === "Completed",
-        ).length;
-
-        const overdue = allTasks.filter(
-          (task) => task.due_date && new Date(task.due_date) < new Date(),
-        ).length;
+        const dashboardStats = statsRes.data;
+        const allTasks = tasksRes.data.tasks || [];
 
         setStats([
-          { title: "Total Tasks", value: total },
-          { title: "In Progress", value: inProgress },
-          { title: "Completed", value: completed },
-          { title: "Overdue", value: overdue },
+          { title: "Total Tasks", value: dashboardStats.totalTasks || 0 },
+          { title: "In Progress", value: dashboardStats.inProgressTasks || 0 },
+          { title: "Completed", value: dashboardStats.completedTasks || 0 },
+          { title: "Overdue", value: dashboardStats.overdueTasks || 0 },
         ]);
 
         setTasks(allTasks.slice(0, 4));
@@ -55,7 +37,7 @@ function Dashboard() {
     };
 
     fetchDashboardData();
-  }, [API_URL, token]);
+  }, []);
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -72,23 +54,21 @@ function Dashboard() {
           </Link>
 
           <div className="space-y-3">
-            {["Dashboard", "Projects", "My Tasks",].map(
-              (item) => (
-                <Link
-                  key={item}
-                  to={
-                    item === "Projects"
-                      ? "/projects"
-                      : item === "My Tasks"
-                        ? "/my-tasks"
-                        : "/dashboard"
-                  }
-                  className="block px-4 py-3 rounded-xl text-white/70 hover:text-white hover:bg-white/5 transition"
-                >
-                  {item}
-                </Link>
-              ),
-            )}
+            {["Dashboard", "Projects", "My Tasks"].map((item) => (
+              <Link
+                key={item}
+                to={
+                  item === "Projects"
+                    ? "/projects"
+                    : item === "My Tasks"
+                    ? "/my-tasks"
+                    : "/dashboard"
+                }
+                className="block px-4 py-3 rounded-xl text-white/70 hover:text-white hover:bg-white/5 transition"
+              >
+                {item}
+              </Link>
+            ))}
           </div>
         </aside>
 
@@ -139,13 +119,13 @@ function Dashboard() {
                 ) : (
                   tasks.map((task) => (
                     <div
-                      key={task.id}
+                      key={task._id}
                       className="p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4 hover:bg-white/3"
                     >
                       <div>
                         <h3 className="font-medium">{task.title}</h3>
                         <p className="text-sm text-white/50 mt-1">
-                          {task.project_name || task.project || "No Project"}
+                          {task.project?.name || "No Project"}
                         </p>
                       </div>
 
@@ -173,6 +153,7 @@ function Dashboard() {
                       <span className="text-white/60">{stat.title}</span>
                       <span>{stat.value}</span>
                     </div>
+
                     <div className="h-3 bg-white/10 rounded-full overflow-hidden">
                       <div
                         className="h-full bg-white rounded-full"
