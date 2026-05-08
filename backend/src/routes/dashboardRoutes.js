@@ -1,17 +1,17 @@
 import express from "express";
+
 import authMiddleware from "../middleware/authMiddleware.js";
+
+import {
+  getDashboardStats,
+} from "../controllers/dashboardController.js";
 
 const router = express.Router();
 
 router.get(
-  "/me",
+  "/stats",
   authMiddleware,
-  (req, res) => {
-    res.json({
-      message: "Protected route working",
-      user: req.user,
-    });
-  }
+  getDashboardStats
 );
 
 export default router;

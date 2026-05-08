@@ -14,6 +14,10 @@ router.post("/", authMiddleware, createTask);
 
 router.get("/", authMiddleware, getTasks);
 
-router.put("/:id", authMiddleware, updateTaskStatus);
+router.put(
+  "/:id/status",
+  authMiddleware,
+  updateTaskStatus
+);
 
 export default router;
