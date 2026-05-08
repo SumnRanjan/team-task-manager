@@ -1,9 +1,38 @@
 import Task from "../models/Task.js";
+import Project from "../models/Project.js";
 
 export const getDashboardStats = async (req, res) => {
   try {
+    const projects = await Project.find({
+      "members.user": req.user.id,
+    });
+
+    const projectIds = projects.map((project) => project._id);
+
+    const adminProjectIds = projects
+      .filter((project) =>
+        project.members.some(
+          (member) =>
+            member.user.toString() === req.user.id &&
+            member.role === "Admin"
+        )
+      )
+      .map((project) => project._id);
+
     const tasks = await Task.find({
-      assignedTo: req.user.id,
+      $or: [
+        {
+          project: {
+            $in: adminProjectIds,
+          },
+        },
+        {
+          assignedTo: req.user.id,
+          project: {
+            $in: projectIds,
+          },
+        },
+      ],
     });
 
     const totalTasks = tasks.length;

@@ -1,5 +1,6 @@
 import Task from "../models/Task.js";
 import Project from "../models/Project.js";
+import mongoose from "mongoose";
 
 export const createTask = async (req, res) => {
   try {
@@ -36,9 +37,14 @@ export const createTask = async (req, res) => {
     }
 
     const taskAssignedTo = assignedTo || req.user.id;
+    if (!mongoose.Types.ObjectId.isValid(taskAssignedTo)) {
+      return res.status(400).json({
+        message: "Invalid assigned user id",
+      });
+    }
 
     const isAssignedUserMember = project.members.some(
-      (member) => member.user.toString() === taskAssignedTo
+      (member) => member.user.toString() === taskAssignedTo,
     );
 
     if (!isAssignedUserMember) {
@@ -83,9 +89,8 @@ export const getTasks = async (req, res) => {
       .filter((project) =>
         project.members.some(
           (member) =>
-            member.user.toString() === req.user.id &&
-            member.role === "Admin"
-        )
+            member.user.toString() === req.user.id && member.role === "Admin",
+        ),
       )
       .map((project) => project._id);
 
@@ -153,12 +158,10 @@ export const updateTaskStatus = async (req, res) => {
 
     const isAdmin = project.members.some(
       (member) =>
-        member.user.toString() === req.user.id &&
-        member.role === "Admin"
+        member.user.toString() === req.user.id && member.role === "Admin",
     );
 
-    const isAssignedUser =
-      task.assignedTo.toString() === req.user.id;
+    const isAssignedUser = task.assignedTo.toString() === req.user.id;
 
     if (!isAdmin && !isAssignedUser) {
       return res.status(403).json({

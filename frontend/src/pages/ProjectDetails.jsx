@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import API from "../api/axios.js";
@@ -8,7 +9,15 @@ function ProjectDetails() {
   const [project, setProject] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [memberEmail, setMemberEmail] = useState("");
-  const [taskTitle, setTaskTitle] = useState("");
+  const [showTaskModal, setShowTaskModal] = useState(false);
+
+  const [taskForm, setTaskForm] = useState({
+    title: "",
+    description: "",
+    assignedTo: "",
+    priority: "Medium",
+    status: "To Do",
+  });
 
   const fetchProject = async () => {
     try {
@@ -22,11 +31,9 @@ function ProjectDetails() {
   const fetchTasks = async () => {
     try {
       const res = await API.get("/tasks");
-
-      const filteredTasks = res.data.tasks.filter(
+      const filteredTasks = (res.data.tasks || []).filter(
         (task) => task.project?._id === id
       );
-
       setTasks(filteredTasks);
     } catch (error) {
       console.log(error);
@@ -36,6 +43,7 @@ function ProjectDetails() {
   useEffect(() => {
     fetchProject();
     fetchTasks();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const handleAddMember = async () => {
@@ -50,26 +58,58 @@ function ProjectDetails() {
       setMemberEmail("");
       fetchProject();
     } catch (error) {
-      console.log(error);
+      alert(error.response?.data?.message || "Add member failed");
     }
   };
 
   const handleAddTask = async () => {
-    if (!taskTitle) return;
+    if (!taskForm.title || !taskForm.assignedTo) {
+      alert("Please enter title and assign member");
+      return;
+    }
 
     try {
       await API.post("/tasks", {
-        title: taskTitle,
+        title: taskForm.title,
+        description: taskForm.description,
+        assignedTo: taskForm.assignedTo,
+        priority: taskForm.priority,
+        status: taskForm.status,
         projectId: id,
-        assignedTo: project.members[0].user._id,
         dueDate: new Date(),
       });
 
-      alert("Task Added");
+      setShowTaskModal(false);
 
-      setTaskTitle("");
+      setTaskForm({
+        title: "",
+        description: "",
+        assignedTo: "",
+        priority: "Medium",
+        status: "To Do",
+      });
 
       fetchTasks();
+    } catch (error) {
+      alert(error.response?.data?.message || "Task add failed");
+    }
+  };
+
+  const handleRemoveMember = async (userId) => {
+    const confirmRemove = window.confirm("Remove this member?");
+    if (!confirmRemove) return;
+
+    try {
+      await API.delete(`/projects/${id}/remove-member/${userId}`);
+
+      setProject((prev) => ({
+        ...prev,
+        members: prev.members.filter((member) => member.user._id !== userId),
+      }));
+
+      setTasks((prev) =>
+        prev.filter((task) => task.assignedTo?._id !== userId)
+      );
     } catch (error) {
       console.log(error.response?.data || error.message);
     }
@@ -91,10 +131,7 @@ function ProjectDetails() {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-8">
         <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <Link
-              to="/projects"
-              className="text-sm text-white/50 hover:text-white"
-            >
+            <Link to="/projects" className="text-sm text-white/50 hover:text-white">
               ← Back to Projects
             </Link>
 
@@ -114,22 +151,12 @@ function ProjectDetails() {
             </p>
           </div>
 
-          <div className="flex gap-3">
-            <input
-              type="text"
-              placeholder="Enter task title"
-              value={taskTitle}
-              onChange={(e) => setTaskTitle(e.target.value)}
-              className="bg-black border border-white/10 rounded-2xl px-4 py-3 outline-none"
-            />
-
-            <button
-              onClick={handleAddTask}
-              className="px-6 py-3 rounded-2xl bg-white text-black font-semibold hover:bg-white/90 transition"
-            >
-              Add Task
-            </button>
-          </div>
+          <button
+            onClick={() => setShowTaskModal(true)}
+            className="px-6 py-3 rounded-2xl bg-white text-black font-semibold hover:bg-white/90 transition"
+          >
+            Add Task
+          </button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
@@ -169,7 +196,19 @@ function ProjectDetails() {
                     <h3 className="font-semibold">{task.title}</h3>
 
                     <p className="text-sm text-white/50 mt-1">
-                      {task.status || "Pending"}
+                      {task.description || "No description"}
+                    </p>
+
+                    <p className="text-sm text-white/50 mt-1">
+                      Status: {task.status || "To Do"}
+                    </p>
+
+                    <p className="text-sm text-white/50 mt-1">
+                      Assigned To: {task.assignedTo?.name || "N/A"}
+                    </p>
+
+                    <p className="text-sm text-white/50 mt-1">
+                      Priority: {task.priority || "Medium"}
                     </p>
                   </div>
                 ))}
@@ -198,9 +237,7 @@ function ProjectDetails() {
             </div>
 
             <div className="border border-white/10 bg-white/3 backdrop-blur-xl rounded-3xl p-6">
-              <h2 className="text-2xl font-semibold mb-5">
-                Project Members
-              </h2>
+              <h2 className="text-2xl font-semibold mb-5">Project Members</h2>
 
               <div className="space-y-4">
                 {project.members?.length === 0 ? (
@@ -221,9 +258,20 @@ function ProjectDetails() {
                         </p>
                       </div>
 
-                      <span className="px-3 py-1 rounded-full text-xs border border-white/10 bg-white/5">
-                        {member.role}
-                      </span>
+                      <div className="flex items-center gap-3">
+                        <span className="px-3 py-1 rounded-full text-xs border border-white/10 bg-white/5">
+                          {member.role}
+                        </span>
+
+                        {member.role !== "Admin" && (
+                          <button
+                            onClick={() => handleRemoveMember(member.user._id)}
+                            className="px-3 py-1 rounded-full text-xs border border-red-500/30 text-red-400 hover:bg-red-500/10 transition"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ))
                 )}
@@ -232,6 +280,92 @@ function ProjectDetails() {
           </div>
         </div>
       </div>
+
+      {showTaskModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4">
+          <div className="w-full max-w-xl border border-white/10 bg-zinc-900 rounded-3xl p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-semibold">Create Task</h2>
+
+              <button
+                onClick={() => setShowTaskModal(false)}
+                className="text-white/50 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <input
+                type="text"
+                placeholder="Task title"
+                value={taskForm.title}
+                onChange={(e) =>
+                  setTaskForm({ ...taskForm, title: e.target.value })
+                }
+                className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 outline-none"
+              />
+
+              <textarea
+                placeholder="Task description"
+                value={taskForm.description}
+                onChange={(e) =>
+                  setTaskForm({ ...taskForm, description: e.target.value })
+                }
+                className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 outline-none resize-none"
+                rows="4"
+              />
+
+              <select
+                value={taskForm.assignedTo}
+                onChange={(e) =>
+                  setTaskForm({ ...taskForm, assignedTo: e.target.value })
+                }
+                className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 outline-none"
+              >
+                <option value="">Assign Member</option>
+
+                {project.members?.map((member) => (
+                  <option key={member.user?._id} value={member.user?._id}>
+                    {member.user?.name}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={taskForm.priority}
+                onChange={(e) =>
+                  setTaskForm({ ...taskForm, priority: e.target.value })
+                }
+                className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 outline-none"
+              >
+                <option>Low</option>
+                <option>Medium</option>
+                <option>High</option>
+              </select>
+
+              <select
+                value={taskForm.status}
+                onChange={(e) =>
+                  setTaskForm({ ...taskForm, status: e.target.value })
+                }
+                className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 outline-none"
+              >
+                <option>To Do</option>
+                <option>In Progress</option>
+                <option>Done</option>
+              </select>
+
+              <button
+                onClick={handleAddTask}
+                className="w-full py-3 rounded-2xl bg-white text-black font-semibold hover:bg-white/90 transition"
+              >
+                Create Task
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

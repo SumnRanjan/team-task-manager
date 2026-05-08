@@ -1,5 +1,6 @@
 import Project from "../models/Project.js";
 import User from "../models/User.js";
+import Task from "../models/Task.js";
 
 export const createProject = async (req, res) => {
   try {
@@ -231,16 +232,35 @@ export const removeMember = async (req, res) => {
       });
     }
 
+    const memberToRemove = project.members.find(
+      (member) => member.user.toString() === userId
+    );
+
+    if (!memberToRemove) {
+      return res.status(404).json({
+        message: "Member not found in project",
+      });
+    }
+
+    if (memberToRemove.role === "Admin") {
+      return res.status(400).json({
+        message: "Admin cannot be removed",
+      });
+    }
+
     project.members = project.members.filter(
-      (member) =>
-        member.user.toString() !== userId
+      (member) => member.user.toString() !== userId
     );
 
     await project.save();
 
+    await Task.deleteMany({
+      project: id,
+      assignedTo: userId,
+    });
+
     res.status(200).json({
-      message: "Member removed successfully",
-      project,
+      message: "Member and related tasks removed successfully",
     });
   } catch (error) {
     console.log(error);
