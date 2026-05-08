@@ -1,45 +1,110 @@
-# 🚀 TeamTask — Team Task Management Platform
+# TeamTask 🚀
 
-A modern full-stack team collaboration and task management platform built using **React, Node.js, Express, and MySQL**.
+### Modern Team Collaboration & Task Management Platform
 
-Users can create projects, assign tasks, manage team members, track progress, and monitor workflow from a clean modern dashboard.
+A full-stack MERN-based team collaboration platform where teams can manage projects, assign tasks, track progress, and collaborate efficiently through a clean modern interface.
+
+Built with scalable architecture, JWT authentication, role-based access control, and a responsive modern UI.
 
 ---
 
 # ✨ Features
 
-- 🔐 JWT Authentication
-- 👥 Team Collaboration
-- 📁 Project Management
-- ✅ Task Assignment & Tracking
-- 📊 Dashboard Analytics
-- 🛡️ Role-Based Access Control
-- 📅 Due Dates & Priorities
-- 📱 Fully Responsive UI
-- 🌙 Modern TailwindCSS Inspired Design
+## 🔐 Authentication & Security
+
+* User Signup & Login
+* JWT Authentication
+* Protected Routes
+* Password Hashing using bcrypt
+* Secure API Access
+
+---
+
+## 👥 Team Collaboration
+
+* Create & Manage Teams
+* Add Members to Projects
+* Remove Members
+* Role-Based Permissions
+* Team Workflow Management
+
+---
+
+## 📁 Project Management
+
+* Create Projects
+* Update Project Details
+* Delete Projects
+* View Assigned Projects
+* Admin & Member Roles
+
+---
+
+## ✅ Task Management
+
+* Create Tasks
+* Assign Tasks to Members
+* Task Priorities (Low / Medium / High)
+* Task Status Management
+* Due Date Tracking
+* Real-time Task Visibility
+
+---
+
+## 📊 Dashboard Analytics
+
+* Total Tasks
+* Completed Tasks
+* In Progress Tasks
+* Overdue Tasks
+* Project Insights
+* User Task Tracking
+
+---
+
+## 🎨 Modern UI
+
+* Fully Responsive Layout
+* Modern Dark Theme
+* Glassmorphism Design
+* Smooth User Experience
+* Clean Dashboard Interface
 
 ---
 
 # 🛠️ Tech Stack
 
 ## Frontend
-- React.js
-- React Router DOM
-- TailwindCSS
-- DaisyUI
-- Axios
+
+* React.js
+* React Router DOM
+* Axios
+* TailwindCSS
+
+---
 
 ## Backend
-- Node.js
-- Express.js
-- JWT Authentication
-- bcrypt.js
+
+* Node.js
+* Express.js
+* JWT Authentication
+* bcryptjs
+* REST APIs
+
+---
 
 ## Database
-- MySQL
+
+* MongoDB Atlas
+* Mongoose ODM
+
+---
 
 ## Deployment
-- Railway
+
+* Vercel (Frontend)
+* Railway / Render (Backend)
+* MongoDB Atlas (Database)
 
 ---
 
@@ -48,16 +113,28 @@ Users can create projects, assign tasks, manage team members, track progress, an
 ```bash
 team-task-manager/
 │
-├── frontend/
+├── backend/
 │   ├── src/
-│   ├── public/
+│   │   ├── config/
+│   │   ├── controllers/
+│   │   ├── middleware/
+│   │   ├── models/
+│   │   ├── routes/
+│   │   └── server.js
+│   │
+│   ├── .env
 │   └── package.json
 │
-├── backend/
-│   ├── routes/
-│   ├── controllers/
-│   ├── middleware/
-│   ├── config/
+├── frontend/
+│   ├── src/
+│   │   ├── api/
+│   │   ├── assets/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   │
+│   ├── .env
 │   └── package.json
 │
 └── README.md
@@ -68,35 +145,46 @@ team-task-manager/
 # 🔑 Core Functionalities
 
 ## Authentication
-- User Signup
-- User Login
-- JWT Token Authentication
-- Protected Routes
 
-## Project Management
-- Create Projects
-- Add Team Members
-- Remove Members
-- Manage Team Workflow
-
-## Task Management
-- Create Tasks
-- Assign Tasks
-- Update Task Status
-- Set Due Dates & Priorities
-
-## Dashboard
-- Total Tasks
-- Completed Tasks
-- Overdue Tasks
-- Tasks By Status
-- Tasks Per User
+* Signup
+* Login
+* JWT Token Authentication
+* Protected Routes
 
 ---
 
-# ⚡ Installation
+## Project Management
 
-## Clone Repository
+* Create Projects
+* Add Members
+* Remove Members
+* Role-Based Access
+
+---
+
+## Task Management
+
+* Create Tasks
+* Assign Tasks
+* Update Task Status
+* Delete Member Tasks Automatically
+* Priority & Status Handling
+
+---
+
+## Dashboard
+
+* Total Tasks
+* Completed Tasks
+* In Progress Tasks
+* Overdue Tasks
+* Team Analytics
+
+---
+
+# ⚡ Installation Guide
+
+## 1️⃣ Clone Repository
 
 ```bash
 git clone https://github.com/SumnRanjan/team-task-manager.git
@@ -104,70 +192,156 @@ git clone https://github.com/SumnRanjan/team-task-manager.git
 
 ---
 
-# Frontend Setup
+# 🖥️ Frontend Setup
 
 ```bash
 cd frontend
+
 npm install
+
 npm run dev
+```
+
+Frontend runs on:
+
+```bash
+http://localhost:5173
 ```
 
 ---
 
-# Backend Setup
+# ⚙️ Backend Setup
 
 ```bash
 cd backend
+
 npm install
+
 npm run dev
+```
+
+Backend runs on:
+
+```bash
+http://localhost:5000
 ```
 
 ---
 
 # 🔐 Environment Variables
 
-Create `.env` inside backend folder:
+## Backend `.env`
 
 ```env
 PORT=5000
 
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=yourpassword
-DB_NAME=teamtask
+MONGO_URI=your_mongodb_connection_url
 
 JWT_SECRET=your_secret_key
 ```
 
 ---
 
-# 🗄️ Database Tables
+## Frontend `.env`
 
-- users
-- projects
-- project_members
-- tasks
+```env
+VITE_API_URL=http://localhost:5000/api
+```
+
+---
+
+# 🗄️ Database Models
+
+## User
+
+* Name
+* Email
+* Password
+
+---
+
+## Project
+
+* Name
+* Description
+* Members
+* Roles
+* Created By
+
+---
+
+## Task
+
+* Title
+* Description
+* Assigned User
+* Priority
+* Status
+* Due Date
 
 ---
 
 # 📸 UI Highlights
 
-- Dark Modern UI
-- TailwindCSS Style Layout
-- Glassmorphism Effects
-- Responsive Design
-- Interactive Dashboard
+* Modern Dark UI
+* Responsive Layout
+* Clean Dashboard
+* Team Member Management
+* Task Creation Modal
+* Smooth User Experience
 
 ---
 
 # 🚀 Future Improvements
 
-- Real-time Notifications
-- Drag & Drop Tasks
-- Team Chat System
-- Activity Logs
-- File Upload Support
-- Kanban Board
+* Drag & Drop Kanban Board
+* Real-Time Notifications
+* Team Chat System
+* File Upload Support
+* Activity Logs
+* Email Notifications
+* Calendar Integration
+
+---
+
+# 🌐 API Endpoints
+
+## Authentication
+
+```bash
+POST /api/auth/signup
+POST /api/auth/login
+```
+
+---
+
+## Projects
+
+```bash
+GET    /api/projects
+POST   /api/projects
+PUT    /api/projects/:id
+DELETE /api/projects/:id
+```
+
+---
+
+## Members
+
+```bash
+POST   /api/projects/:id/add-member
+DELETE /api/projects/:id/remove-member/:userId
+```
+
+---
+
+## Tasks
+
+```bash
+GET    /api/tasks
+POST   /api/tasks
+PUT    /api/tasks/:id
+```
 
 ---
 
@@ -176,3 +350,4 @@ JWT_SECRET=your_secret_key
 Built with ❤️ by Suman Ranjan
 
 ---
+
