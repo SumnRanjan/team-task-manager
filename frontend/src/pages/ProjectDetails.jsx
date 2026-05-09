@@ -1,7 +1,7 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import API from "../api/axios.js";
+import toast from "react-hot-toast";
 
 function ProjectDetails() {
   const { id } = useParams();
@@ -19,35 +19,52 @@ function ProjectDetails() {
     status: "To Do",
   });
 
+  const currentUser = JSON.parse(localStorage.getItem("user"));
+
+  const currentUserId =
+    currentUser?._id || currentUser?.user?._id || currentUser?.id;
+
   const fetchProject = async () => {
     try {
       const res = await API.get(`/projects/${id}`);
+
       setProject(res.data);
     } catch (error) {
       console.log(error);
+
+      toast.error("Failed to load project");
     }
   };
 
   const fetchTasks = async () => {
     try {
       const res = await API.get("/tasks");
+
       const filteredTasks = (res.data.tasks || []).filter(
-        (task) => task.project?._id === id
+        (task) => task.project?._id === id,
       );
+
       setTasks(filteredTasks);
     } catch (error) {
       console.log(error);
+
+      toast.error("Failed to load tasks");
     }
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchProject();
+
     fetchTasks();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const handleAddMember = async () => {
-    if (!memberEmail) return;
+    if (!memberEmail) {
+      toast.error("Please enter member email");
+      return;
+    }
 
     try {
       await API.post(`/projects/${id}/add-member`, {
@@ -55,16 +72,20 @@ function ProjectDetails() {
         role: "Member",
       });
 
+      toast.success("Member added successfully");
+
       setMemberEmail("");
+
       fetchProject();
     } catch (error) {
-      alert(error.response?.data?.message || "Add member failed");
+      toast.error(error.response?.data?.message || "Member not found");
     }
   };
 
   const handleAddTask = async () => {
     if (!taskForm.title || !taskForm.assignedTo) {
-      alert("Please enter title and assign member");
+      toast.error("Please enter title and assign member");
+
       return;
     }
 
@@ -79,6 +100,8 @@ function ProjectDetails() {
         dueDate: new Date(),
       });
 
+      toast.success("Task created successfully");
+
       setShowTaskModal(false);
 
       setTaskForm({
@@ -91,14 +114,11 @@ function ProjectDetails() {
 
       fetchTasks();
     } catch (error) {
-      alert(error.response?.data?.message || "Task add failed");
+      toast.error(error.response?.data?.message || "Task add failed");
     }
   };
 
   const handleRemoveMember = async (userId) => {
-    const confirmRemove = window.confirm("Remove this member?");
-    if (!confirmRemove) return;
-
     try {
       await API.delete(`/projects/${id}/remove-member/${userId}`);
 
@@ -108,10 +128,14 @@ function ProjectDetails() {
       }));
 
       setTasks((prev) =>
-        prev.filter((task) => task.assignedTo?._id !== userId)
+        prev.filter((task) => task.assignedTo?._id !== userId),
       );
+
+      toast.success("Member removed successfully");
     } catch (error) {
       console.log(error.response?.data || error.message);
+
+      toast.error("Failed to remove member");
     }
   };
 
@@ -123,15 +147,28 @@ function ProjectDetails() {
     );
   }
 
+  const isAdmin = project?.members?.some((member) => {
+    const memberUserId = member.user?._id || member.user;
+
+    return (
+      String(memberUserId) === String(currentUserId) &&
+      String(member.role).toLowerCase() === "admin"
+    );
+  });
+
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-size-[80px_80px] opacity-30" />
+
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-75 sm:w-175 h-75 sm:h-175 bg-cyan-500/10 blur-[120px]" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-8">
         <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <Link to="/projects" className="text-sm text-white/50 hover:text-white">
+            <Link
+              to="/projects"
+              className="text-sm text-white/50 hover:text-white"
+            >
               ← Back to Projects
             </Link>
 
@@ -151,17 +188,20 @@ function ProjectDetails() {
             </p>
           </div>
 
-          <button
-            onClick={() => setShowTaskModal(true)}
-            className="px-6 py-3 rounded-2xl bg-white text-black font-semibold hover:bg-white/90 transition"
-          >
-            Add Task
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => setShowTaskModal(true)}
+              className="px-6 py-3 rounded-2xl bg-white text-black font-semibold hover:bg-white/90 transition"
+            >
+              Add Task
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
           <div className="border border-white/10 bg-white/3 backdrop-blur-xl rounded-3xl p-6">
             <p className="text-white/50 text-sm">Total Members</p>
+
             <h2 className="text-4xl font-semibold mt-3">
               {project.members?.length || 0}
             </h2>
@@ -169,6 +209,7 @@ function ProjectDetails() {
 
           <div className="border border-white/10 bg-white/3 backdrop-blur-xl rounded-3xl p-6">
             <p className="text-white/50 text-sm">Created By</p>
+
             <h2 className="text-xl font-semibold mt-3">
               {project.createdBy?.name || "N/A"}
             </h2>
@@ -176,6 +217,7 @@ function ProjectDetails() {
 
           <div className="border border-white/10 bg-white/3 backdrop-blur-xl rounded-3xl p-6">
             <p className="text-white/50 text-sm">Status</p>
+
             <h2 className="text-4xl font-semibold mt-3">Active</h2>
           </div>
         </div>
@@ -217,25 +259,26 @@ function ProjectDetails() {
           </div>
 
           <div>
-            <div className="mb-6">
-              <div className="flex flex-col sm:flex-row gap-3">
-                <input
-                  type="email"
-                  placeholder="Enter member email"
-                  value={memberEmail}
-                  onChange={(e) => setMemberEmail(e.target.value)}
-                  className="flex-1 bg-black border border-white/10 rounded-2xl px-4 py-3 outline-none"
-                />
+            {isAdmin && (
+              <div className="mb-6">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <input
+                    type="email"
+                    placeholder="Enter member email"
+                    value={memberEmail}
+                    onChange={(e) => setMemberEmail(e.target.value)}
+                    className="flex-1 bg-black border border-white/10 rounded-2xl px-4 py-3 outline-none"
+                  />
 
-                <button
-                  onClick={handleAddMember}
-                  className="px-5 py-3 rounded-2xl bg-white text-black font-semibold hover:bg-white/90 transition"
-                >
-                  Add Member
-                </button>
+                  <button
+                    onClick={handleAddMember}
+                    className="px-5 py-3 rounded-2xl bg-white text-black font-semibold hover:bg-white/90 transition"
+                  >
+                    Add Member
+                  </button>
+                </div>
               </div>
-            </div>
-
+            )}
             <div className="border border-white/10 bg-white/3 backdrop-blur-xl rounded-3xl p-6">
               <h2 className="text-2xl font-semibold mb-5">Project Members</h2>
 
@@ -263,7 +306,7 @@ function ProjectDetails() {
                           {member.role}
                         </span>
 
-                        {member.role !== "Admin" && (
+                        {isAdmin && member.role !== "Admin" && (
                           <button
                             onClick={() => handleRemoveMember(member.user._id)}
                             className="px-3 py-1 rounded-full text-xs border border-red-500/30 text-red-400 hover:bg-red-500/10 transition"
@@ -301,7 +344,10 @@ function ProjectDetails() {
                 placeholder="Task title"
                 value={taskForm.title}
                 onChange={(e) =>
-                  setTaskForm({ ...taskForm, title: e.target.value })
+                  setTaskForm({
+                    ...taskForm,
+                    title: e.target.value,
+                  })
                 }
                 className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 outline-none"
               />
@@ -310,7 +356,10 @@ function ProjectDetails() {
                 placeholder="Task description"
                 value={taskForm.description}
                 onChange={(e) =>
-                  setTaskForm({ ...taskForm, description: e.target.value })
+                  setTaskForm({
+                    ...taskForm,
+                    description: e.target.value,
+                  })
                 }
                 className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 outline-none resize-none"
                 rows="4"
@@ -319,7 +368,10 @@ function ProjectDetails() {
               <select
                 value={taskForm.assignedTo}
                 onChange={(e) =>
-                  setTaskForm({ ...taskForm, assignedTo: e.target.value })
+                  setTaskForm({
+                    ...taskForm,
+                    assignedTo: e.target.value,
+                  })
                 }
                 className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 outline-none"
               >
@@ -335,7 +387,10 @@ function ProjectDetails() {
               <select
                 value={taskForm.priority}
                 onChange={(e) =>
-                  setTaskForm({ ...taskForm, priority: e.target.value })
+                  setTaskForm({
+                    ...taskForm,
+                    priority: e.target.value,
+                  })
                 }
                 className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 outline-none"
               >
@@ -347,7 +402,10 @@ function ProjectDetails() {
               <select
                 value={taskForm.status}
                 onChange={(e) =>
-                  setTaskForm({ ...taskForm, status: e.target.value })
+                  setTaskForm({
+                    ...taskForm,
+                    status: e.target.value,
+                  })
                 }
                 className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 outline-none"
               >

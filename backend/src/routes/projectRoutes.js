@@ -11,6 +11,7 @@ import {
 } from "../controllers/projectController.js";
 
 import authMiddleware from "../middleware/authMiddleware.js";
+import projectAdminMiddleware from "../middleware/projectAdminMiddleware.js";
 
 const router = express.Router();
 
@@ -20,19 +21,31 @@ router.get("/", authMiddleware, getProjects);
 
 router.get("/:id", authMiddleware, getSingleProject);
 
-router.put("/:id", authMiddleware, updateProject);
+router.put(
+  "/:id",
+  authMiddleware,
+  projectAdminMiddleware,
+  updateProject
+);
 
-router.delete("/:id", authMiddleware, deleteProject);
+router.delete(
+  "/:id",
+  authMiddleware,
+  projectAdminMiddleware,
+  deleteProject
+);
 
 router.post(
   "/:id/add-member",
   authMiddleware,
+  projectAdminMiddleware,
   addMember
 );
 
 router.delete(
   "/:id/remove-member/:userId",
   authMiddleware,
+  projectAdminMiddleware,
   removeMember
 );
 
