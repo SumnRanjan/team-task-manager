@@ -258,7 +258,7 @@ function Home() {
                       {[
                         "Design dashboard UI",
                         "Implement JWT authentication",
-                        "Setup MySQL database",
+                        "Setup Mongodb database",
                         "Deploy app on Railway",
                       ].map((task, index) => (
                         <div
