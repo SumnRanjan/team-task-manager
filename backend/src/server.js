@@ -24,7 +24,7 @@ app.use("/api/tasks", taskRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
 app.get("/", (req, res) => {
-  res.send("TeamTask API Running deployment");
+  res.send("TeamTask API Running");
 });
 
 const PORT = process.env.PORT || 5000;
