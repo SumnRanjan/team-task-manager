@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import API from "../api/axios";
+import toast from "react-hot-toast";
 
 function Login() {
   const navigate = useNavigate();
@@ -19,18 +20,33 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     setError("");
+
     setLoading(true);
+
+    const toastId = toast.loading("Logging in...");
 
     try {
       const res = await API.post("/auth/login", formData);
 
       localStorage.setItem("token", res.data.token);
+
       localStorage.setItem("user", JSON.stringify(res.data.user));
+
+      toast.success("Login successful", {
+        id: toastId,
+      });
 
       navigate("/dashboard");
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
+      const message = err.response?.data?.message || "Login failed";
+
+      setError(message);
+
+      toast.error(message, {
+        id: toastId,
+      });
     } finally {
       setLoading(false);
     }
