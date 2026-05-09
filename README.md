@@ -102,10 +102,7 @@ Built with scalable architecture, JWT authentication, role-based access control,
 
 ## Deployment
 
-* Vercel (Frontend)
-* Railway / Render (Backend)
-* MongoDB Atlas (Database)
-
+* Railway
 ---
 
 # 📂 Project Structure
